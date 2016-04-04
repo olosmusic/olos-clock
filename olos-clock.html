@@ -1,0 +1,134 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../iron-dropdown/iron-dropdown.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-menu/paper-menu.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+<!-- <link rel="import" href="../core-icons/core-icons.html">
+<link rel="import" href="../core-icons/av-icons.html"> -->
+
+<!--
+olos-clock
+
+##### Example
+
+
+@element olos-clock
+@blurb 
+@status alpha
+@homepage 
+-->
+<!-- to do: check to see if loaded, otherwise load -->
+<!-- <script src="../nexusUI/dist/nexusUI.js"type="text/javascript"></script> -->
+<dom-module id="olos-clock">
+  <link rel="import" type="css" href="olos-clock.css">
+  <template>
+
+    <div class="olos-container clock">
+
+      <div id="canvasContainer" class="olos-container" on-mousedown="mouseOnCanvas">
+      </div>
+
+
+      <paper-input label="BPM" type="number" preventinvalidinput="" committedvalue="{{bpm}}" value="{{bpm::input}}"></paper-input>
+    </div>
+    
+  </template>
+  <script>
+    (function (params) {
+      Polymer({
+        is: 'olos-clock',
+        properties: {
+          _lastMouseTap: {
+            type: Number,
+            value: 0
+          },
+          _upTick: {
+            type: Boolean,
+            value: false
+          },
+          bpm: {
+            type: Number,
+            value: 120,
+            observer: 'bpmChanged'
+          },
+          height: {
+            type: Number,
+            value: 55
+          },
+          publicMethods: {
+            type: Array,
+            value: function () {
+              return ['onTick'];
+            }
+          },
+          rootfolder: {
+            type: String,
+            value: '../olos-clock/',
+            notify: true
+          },
+          width: {
+            type: Number,
+            value: 200
+          }
+        },
+        ready: function () {
+          var self = this;
+          this.setup();
+        },
+        attached: function() {
+          var self = this;
+          Tone.Transport.start();
+          Tone.Transport.scheduleRepeat(function (time) {
+            if (!self._p5 || !self._p5._renderer) return;
+            self._p5.background(0, 255, 128);
+            self.fire('4n');
+          }, '4n');
+        },
+        setup: function () {
+          var self = this;
+          self._initCanvas();
+        },
+        bpmChanged: function () {
+          Tone.Transport.bpm.value = this.bpm;
+        },
+        _initCanvas: function () {
+          var self = this;
+          self._sketch = function (sketch) {
+            sketch.setup = function () {
+              sketch.cnv = sketch.createCanvas(50, 50);
+              sketch.background(255, 255, 0);
+              sketch.noFill();
+              sketch.noLoop();
+            };
+            sketch.draw = function () {
+              // if draw is called by outside, graphics may not be ready
+              if (!sketch._renderer) return;
+              sketch.background(255, 255, 255, 100);
+            };
+          };
+          self._p5 = new p5(self._sketch, self.$.canvasContainer);
+        },
+        _draw: function () {
+          var self = this;
+          self._p5.draw();
+        },
+        dispose: function () {
+          var self = this;
+          // erase nexus element
+          self.nexusEl.destroy();
+        },
+        mouseOnCanvas: function (e) {
+          var tapTime = audioContext.currentTime - this._lastMouseTap;
+          var ms_per_beat = 1000 * 60 / bpm;
+          var bpm = 60 / tapTime;
+          if (bpm >= 40 && bpm <= 400) {
+            this.bpm = bpm;
+          }
+          this._lastMouseTap = audioContext.currentTime;
+        }
+      });
+    }());
+  </script>
+</dom-module>

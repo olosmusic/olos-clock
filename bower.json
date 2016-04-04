@@ -1,0 +1,12 @@
+{
+  "name": "olos-clock",
+  "version": "0.0.0",
+  "license": "MIT",
+  "main": "olos-clock.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#~1.4.0",
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^1.1.4"
+  }
+}
